@@ -192,61 +192,80 @@ namespace BettingBot.Controller
             return false;
         }
 
-        public bool doCheckBetslip()
+        public void startAutoStaker()
         {
             try
             {                
+                LogMng.instance.PrintLog($"Auto Staker Bot has been started!");
+
+                // check betslip empty, if there is even one, print log betslip balance
                 string slipBalance = BrowserCtrl.instance.ExecuteScript("document.querySelector('span[data-automation-id=\"header-bet-count\"]').innerText", true);
                 if (slip_balance != int.Parse(slipBalance))
                 {
-                    LogMng.instance.PrintLog($"Current balance={slipBalance}");
+                    LogMng.instance.PrintLog($"Betslip Balance={slipBalance}");
                     slip_balance = int.Parse(slipBalance);                    
                 }
                 
+                // check if betslip window is closed - in case of yes click betslip button
                 string btnRes = BrowserCtrl.instance.ExecuteScript("document.querySelector('span[data-automation-id=\"BetslipHeader\"]') !== null?true: false", true);
                 if (btnRes == "False")
                 {
+                    Thread.Sleep(5000);
                     BrowserCtrl.instance.ExecuteScript("document.querySelector(\"button[data-automation-id='header-betslip-touchable']\").click()");
-                    Thread.Sleep(200);
                 }
-                if (Setting.instance.enableAutoSlip)
+
+                // autofill to all stake in betslip
+                if (slip_balance != 0)
                 {
-                    inputBetStake();                    
+                    autofillBetStake();
                 }
-                return true;
             }
-            catch
+            catch (Exception ex)
             {
+                LogMng.instance.PrintLog("Exception in AutoStaker " + ex.ToString());
             }
-            return false;
         }
 
-        public void inputBetStake()
+        public void autofillBetStake()
         {
-            if (slip_balance != 0)
+            try
             {                
-                double totalReturn = Setting.instance.totalReturn;                                
+                // factors of stack formula
+                double odds, stack, totalReturn = Setting.instance.totalReturn;
                 int i = 0;
-                double odds, stack;
                 while (i < slip_balance)
                 {
                     BrowserCtrl.instance.ExecuteScript($@" document.querySelectorAll('[data-automation-id^=""betslip-single-""] [data-automation-id=""betslip-stake""]')[{i}].focus();");
-                    //BrowserCtrl.instance.ExecuteScript($@" document.querySelectorAll('[data-automation-id^=""betslip-single-""] [data-automation-id=""betslip-stake""]')[{i}].innerText("");", true);
                     BrowserCtrl.instance.ExecuteScript($@"document.querySelectorAll('[data-automation-id^=""betslip-single-""] [data-automation-id=""betslip-stake""]')[{i}].value = '';", true);
-                    odds = Convert.ToDouble(BrowserCtrl.instance.ExecuteScript($@" document.querySelectorAll('[data-automation-id^=""betslip-single-""] [data-automation-id=""betslip-bet-odds""]')[{i}].innerText", true));
+                    odds = Convert.ToDouble(BrowserCtrl.instance.ExecuteScript($@" document.querySelectorAll('[data-automation-id^=""betslip-single-""] [data-automation-id^=""betslip-bet-odds""]')[{i}].innerText", true));
                     stack = getBetStake(odds, totalReturn);
                     AutoItX.Send("^a");
                     AutoItX.Send("{DEL}");
                     AutoItX.Send("$" + stack.ToString());
                     i++;
+                    Thread.Sleep(3000);
                 }
-                Thread.Sleep(5000);
+            }
+            catch
+            { 
             }
         }
 
         public double getBetStake(double odds, double totalReturn)
         {
             return Math.Round(totalReturn / (odds - 1), 2);
+        }
+
+        public void startAutoSlip()
+        {
+            try
+            {
+                LogMng.instance.PrintLog($"Auto Slip Bot has been started!");
+            }
+            catch
+            {
+
+            }
         }
 
         public List<RaceItem> GetBfRaceList(bool bForce = false)

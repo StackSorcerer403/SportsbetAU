@@ -192,7 +192,10 @@ namespace BettingBot
             {
                 try
                 {
-                    BookieCtrl.instance.doCheckBetslip();
+                    // start autostaker, autoslip bot
+                    if (Setting.instance.enableAutoStaker) BookieCtrl.instance.startAutoStaker();
+                    if (Setting.instance.enableAutoSlip) BookieCtrl.instance.startAutoSlip();
+
                     List<RaceItem> nextRaceList = BookieCtrl.instance.getNextRaces(Setting.instance.beforeKickoff);
                     List<HorseItem> horseList = new List<HorseItem>();
                     foreach (RaceItem raceItem in nextRaceList)
