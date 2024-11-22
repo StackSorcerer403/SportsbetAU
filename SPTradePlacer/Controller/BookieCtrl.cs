@@ -192,33 +192,27 @@ namespace BettingBot.Controller
             return false;
         }
 
-        public bool doCheckBetslip(int delay)
+        public bool doCheckBetslip()
         {
             try
-            {
-                int retryCounter = 10 * delay;
-                string strRes = BrowserCtrl.instance.ExecuteScript("document.querySelector('span[data-automation-id=\"header-bet-count\"]') !== 0?true: false", true);
-                while (strRes != "True" && --retryCounter > 0)
-                {
-                    Thread.Sleep(100);
-                }
-                if (strRes == "False") {         
-                    return false;
-                }
+            {                
                 string slipBalance = BrowserCtrl.instance.ExecuteScript("document.querySelector('span[data-automation-id=\"header-bet-count\"]').innerText", true);
                 if (slip_balance != int.Parse(slipBalance))
                 {
                     LogMng.instance.PrintLog($"Current balance={slipBalance}");
                     slip_balance = int.Parse(slipBalance);                    
                 }
-
-                string btnRes = BrowserCtrl.instance.ExecuteScript("document.querySelector('span[data-automation-id=\"BetslipHeader\"]') !== 0?true: false", true);
+                
+                string btnRes = BrowserCtrl.instance.ExecuteScript("document.querySelector('span[data-automation-id=\"BetslipHeader\"]') !== null?true: false", true);
                 if (btnRes == "False")
                 {
                     BrowserCtrl.instance.ExecuteScript("document.querySelector(\"button[data-automation-id='header-betslip-touchable']\").click()");
                     Thread.Sleep(200);
                 }
-                inputBetStake();
+                if (Setting.instance.enableAutoSlip)
+                {
+                    inputBetStake();                    
+                }
                 return true;
             }
             catch

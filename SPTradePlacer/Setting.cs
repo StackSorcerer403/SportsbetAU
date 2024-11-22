@@ -49,6 +49,8 @@ namespace BettingBot
         public bool enableHorse { get; internal set; }
         public bool enableTrade { get; internal set; }
         public bool enableHarness { get; internal set; }
+        public bool enableAutoSlip { get; internal set; }
+        public bool enableAutoStaker { get; internal set; }
         public bool enableDog { get; internal set; }
 
         public string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36";
@@ -110,6 +112,8 @@ namespace BettingBot
             WriteRegistry("enableHorse", Setting.instance.enableHorse?"true":"false");
             WriteRegistry("enableDog", Setting.instance.enableDog? "true" : "false");
             WriteRegistry("enableHarness", Setting.instance.enableHarness? "true" : "false");
+            WriteRegistry("enableAutoSlip", Setting.instance.enableAutoSlip ? "true" : "false");
+            WriteRegistry("enableAutoStaker", Setting.instance.enableAutoStaker ? "true" : "false");
 
             WriteRegistry("enableTrade", Setting.instance.enableTrade ? "true" : "false");
         }
@@ -133,6 +137,8 @@ namespace BettingBot
             Setting.instance.enableHorse = ReadRegistry("enableHorse") == "true";
             Setting.instance.enableDog = ReadRegistry("enableDog") == "true";
             Setting.instance.enableHarness = ReadRegistry("enableHarness") == "true";
+            Setting.instance.enableAutoSlip = ReadRegistry("enableAutoSlip") == "true";
+            Setting.instance.enableAutoStaker = ReadRegistry("enableAutoStaker") == "true";
 
             Setting.instance.enableTrade = ReadRegistry("enableTrade") == "true";
 
