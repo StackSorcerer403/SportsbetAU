@@ -47,6 +47,8 @@ namespace BettingBot
             chkHorse.Checked = Setting.instance.enableHorse;
             chkHarness.Checked = Setting.instance.enableHarness;
             chkDog.Checked = Setting.instance.enableDog;
+            chkAutoSlip.Checked = Setting.instance.enableAutoSlip;
+            chkAutoStaker.Checked = Setting.instance.enableAutoStaker;
 
             numBeforeKickoff.Value = (decimal)Setting.instance.beforeKickoff;
 
@@ -89,6 +91,8 @@ namespace BettingBot
             Setting.instance.enableHorse = chkHorse.Checked;
             Setting.instance.enableHarness = chkHarness.Checked;
             Setting.instance.enableDog = chkDog.Checked;
+            Setting.instance.enableAutoSlip = chkAutoSlip.Checked;
+            Setting.instance.enableAutoStaker = chkAutoStaker.Checked;
         }
 
         private void btnOK_Click(object sender, EventArgs e)
@@ -132,6 +136,11 @@ namespace BettingBot
         }
 
         private void numBeforeKickoff_ValueChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void chkAutoSlip_CheckedChanged(object sender, EventArgs e)
         {
 
         }

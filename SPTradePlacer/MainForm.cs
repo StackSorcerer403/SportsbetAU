@@ -192,7 +192,7 @@ namespace BettingBot
             {
                 try
                 {
-                    BookieCtrl.instance.doCheckBetslip(10);
+                    BookieCtrl.instance.doCheckBetslip();
                     List<RaceItem> nextRaceList = BookieCtrl.instance.getNextRaces(Setting.instance.beforeKickoff);
                     List<HorseItem> horseList = new List<HorseItem>();
                     foreach (RaceItem raceItem in nextRaceList)

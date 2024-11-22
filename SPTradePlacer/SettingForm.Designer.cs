@@ -61,6 +61,8 @@
             this.label4 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
+            this.chkAutoSlip = new System.Windows.Forms.CheckBox();
+            this.chkAutoStaker = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numFlatStake)).BeginInit();
             this.groupBox2.SuspendLayout();
@@ -211,6 +213,8 @@
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.chkAutoStaker);
+            this.groupBox2.Controls.Add(this.chkAutoSlip);
             this.groupBox2.Controls.Add(this.numTotalReturn);
             this.groupBox2.Controls.Add(this.label2);
             this.groupBox2.Controls.Add(this.chkHarness);
@@ -515,6 +519,27 @@
             this.label3.TextAlign = System.Drawing.ContentAlignment.TopRight;
             this.label3.Click += new System.EventHandler(this.label3_Click);
             // 
+            // chkAutoSlip
+            // 
+            this.chkAutoSlip.AutoSize = true;
+            this.chkAutoSlip.Location = new System.Drawing.Point(420, 123);
+            this.chkAutoSlip.Name = "chkAutoSlip";
+            this.chkAutoSlip.Size = new System.Drawing.Size(104, 17);
+            this.chkAutoSlip.TabIndex = 66;
+            this.chkAutoSlip.Text = "Auto Adding Slip";
+            this.chkAutoSlip.UseVisualStyleBackColor = true;
+            this.chkAutoSlip.CheckedChanged += new System.EventHandler(this.chkAutoSlip_CheckedChanged);
+            // 
+            // chkAutoStaker
+            // 
+            this.chkAutoStaker.AutoSize = true;
+            this.chkAutoStaker.Location = new System.Drawing.Point(420, 165);
+            this.chkAutoStaker.Name = "chkAutoStaker";
+            this.chkAutoStaker.Size = new System.Drawing.Size(82, 17);
+            this.chkAutoStaker.TabIndex = 67;
+            this.chkAutoStaker.Text = "Auto Staker";
+            this.chkAutoStaker.UseVisualStyleBackColor = true;
+            // 
             // SettingForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -584,5 +609,7 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.NumericUpDown numTotalReturn;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.CheckBox chkAutoStaker;
+        private System.Windows.Forms.CheckBox chkAutoSlip;
     }
 }
