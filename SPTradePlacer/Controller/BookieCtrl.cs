@@ -191,13 +191,10 @@ namespace BettingBot.Controller
             }
             return false;
         }
-
-        public void startAutoStaker()
+        public void updateSlipBalance()
         {
             try
-            {                
-                LogMng.instance.PrintLog($"Auto Staker Bot has been started!");
-
+            {
                 // check betslip empty, if there is even one, print log betslip balance
                 string slipBalance = BrowserCtrl.instance.ExecuteScript("document.querySelector('span[data-automation-id=\"header-bet-count\"]').innerText", true);
                 if (slip_balance != int.Parse(slipBalance))
@@ -205,7 +202,16 @@ namespace BettingBot.Controller
                     LogMng.instance.PrintLog($"Betslip Balance={slipBalance}");
                     slip_balance = int.Parse(slipBalance);                    
                 }
-                
+            }
+            catch (Exception ex)
+            {
+                LogMng.instance.PrintLog("Exception in UpdateSlipBalance " + ex.ToString());
+            }
+        }
+        public void startAutoStaker()
+        {
+            try
+            {                                                
                 // check if betslip window is closed - in case of yes click betslip button
                 string btnRes = BrowserCtrl.instance.ExecuteScript("document.querySelector('span[data-automation-id=\"BetslipHeader\"]') !== null?true: false", true);
                 if (btnRes == "False")
@@ -260,11 +266,22 @@ namespace BettingBot.Controller
         {
             try
             {
-                LogMng.instance.PrintLog($"Auto Slip Bot has been started!");
+                // check if the current page is SRM or not
+                string isSRM = BrowserCtrl.instance.ExecuteScript("document.querySelector('[data-automation-id=\"contextual-nav-tab-2\"] [data-automation-id=\"pill-tab-selected-true-disabled-false\"]') !== null?true: false", true);
+                if (isSRM == "True")
+                {
+                    string stringLegs = BrowserCtrl.instance.ExecuteScript("document.querySelector('div[data-automation-id=\"multi-number-of-legs\"]').innerText", true);
+                    int legs = int.Parse(stringLegs);
+                    if (legs == 4)
+                    {
+                        BrowserCtrl.instance.ExecuteScript("document.querySelector(\"div[data-automation-id='multi-add-to-betslip-button'] button\").click()");
+                        Thread.Sleep(2000);
+                    }
+                }
             }
-            catch
+            catch (Exception ex)
             {
-
+                LogMng.instance.PrintLog("Exception in AutoSlip " + ex.ToString());
             }
         }
 
