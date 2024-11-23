@@ -137,9 +137,10 @@ namespace BettingBot
 
             refreshControls(false);
             writeStatus("The bot has been started!");
+            if (Setting.instance.enableAutoStaker) writeStatus("The Auto Staker Bot has been started!");
+            if (Setting.instance.enableAutoSlip) writeStatus("The Auto Slip Bot has been started!");
 
-            BookieCtrl.CreateInstance();
-            
+            BookieCtrl.CreateInstance();            
             BrowserCtrl.CloseOldBrowser();
             BrowserCtrl.CreateInstance();
             BrowserCtrl.instance.DoOpenPage("https://www.sportsbet.com.au");
@@ -193,6 +194,7 @@ namespace BettingBot
                 try
                 {
                     // start autostaker, autoslip bot
+                    BookieCtrl.instance.updateSlipBalance();
                     if (Setting.instance.enableAutoStaker) BookieCtrl.instance.startAutoStaker();
                     if (Setting.instance.enableAutoSlip) BookieCtrl.instance.startAutoSlip();
 
