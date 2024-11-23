@@ -31,27 +31,14 @@ namespace BettingBot
         public string birthDay { get; set; }
         public string fingerPrint { get; set; }
         public string apiKey { get; set; }
-        public string currency { get; set; }
-        public double minOdds { get; set; }
-        public double maxOdds { get; set; }
+        public string currency { get; set; }        
         public double flatStake { get; set; }
-
         public double beforeKickoff { get; set; }
-
-        public double totalReturn { get; set; }
-
-        public double maxValue { get; set; }
-        public double minValue { get; set; }
-        public double maxPercent { get; set; }
-        public double minPercent { get; set; }
+        public double totalReturn { get; set; }        
         public dynamic BotSetting { get; set; }
-        public bool isOnline { get; set; }
-        public bool enableHorse { get; internal set; }
-        public bool enableTrade { get; internal set; }
-        public bool enableHarness { get; internal set; }
+        public bool isOnline { get; set; }        
         public bool enableAutoSlip { get; internal set; }
         public bool enableAutoStaker { get; internal set; }
-        public bool enableDog { get; internal set; }
 
         public string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36";
         public Setting()
@@ -95,28 +82,13 @@ namespace BettingBot
             WriteRegistry("fingerPrint", Setting.instance.fingerPrint);
             WriteRegistry("apiKey", Setting.instance.apiKey);
             WriteRegistry("currency", Setting.instance.currency);
-
             WriteRegistry("beforeKickoff", Setting.instance.beforeKickoff.ToString());
             WriteRegistry("totalReturn", Setting.instance.totalReturn.ToString());
-            WriteRegistry("minOdds"    , Setting.instance.minOdds.ToString());
-            WriteRegistry("maxOdds"    , Setting.instance.maxOdds.ToString());
-
-            WriteRegistry("minPercent", Setting.instance.minPercent.ToString());
-            WriteRegistry("maxPercent", Setting.instance.maxPercent.ToString());
-
-            WriteRegistry("minValue", Setting.instance.minValue.ToString());
-            WriteRegistry("maxValue", Setting.instance.maxValue.ToString());
-
             WriteRegistry("flatStake", Setting.instance.flatStake.ToString());
-
-            WriteRegistry("enableHorse", Setting.instance.enableHorse?"true":"false");
-            WriteRegistry("enableDog", Setting.instance.enableDog? "true" : "false");
-            WriteRegistry("enableHarness", Setting.instance.enableHarness? "true" : "false");
             WriteRegistry("enableAutoSlip", Setting.instance.enableAutoSlip ? "true" : "false");
             WriteRegistry("enableAutoStaker", Setting.instance.enableAutoStaker ? "true" : "false");
 
-            WriteRegistry("enableTrade", Setting.instance.enableTrade ? "true" : "false");
-        }
+        }   
 
         public void loadSettingInfo()
         {
@@ -134,29 +106,13 @@ namespace BettingBot
             Setting.instance.apiKey = ReadRegistry("apiKey");
             Setting.instance.currency = ReadRegistry("currency");
 
-            Setting.instance.enableHorse = ReadRegistry("enableHorse") == "true";
-            Setting.instance.enableDog = ReadRegistry("enableDog") == "true";
-            Setting.instance.enableHarness = ReadRegistry("enableHarness") == "true";
             Setting.instance.enableAutoSlip = ReadRegistry("enableAutoSlip") == "true";
             Setting.instance.enableAutoStaker = ReadRegistry("enableAutoStaker") == "true";
-
-            Setting.instance.enableTrade = ReadRegistry("enableTrade") == "true";
-
-            
-
             Setting.instance.beforeKickoff = Utils.ParseToDouble(string.IsNullOrEmpty(ReadRegistry("beforeKickoff")) ? "300" : ReadRegistry("beforeKickoff"));
             Setting.instance.totalReturn = Utils.ParseToDouble(string.IsNullOrEmpty(ReadRegistry("totalReturn")) ? "8000" : ReadRegistry("totalReturn"));
 
-            Setting.instance.minOdds       = Utils.ParseToDouble(string.IsNullOrEmpty(ReadRegistry("minOdds")) ? "1.2" : ReadRegistry("minOdds"));
-            Setting.instance.maxOdds       = Utils.ParseToDouble(string.IsNullOrEmpty(ReadRegistry("maxOdds")) ? "6" : ReadRegistry("maxOdds"));
 
             Setting.instance.flatStake = Utils.ParseToDouble(string.IsNullOrEmpty(ReadRegistry("flatStake")) ? "2" : ReadRegistry("flatStake"));
-            Setting.instance.minValue = Utils.ParseToDouble(string.IsNullOrEmpty(ReadRegistry("minValue")) ? "10" : ReadRegistry("minValue"));
-            Setting.instance.maxValue = Utils.ParseToDouble(string.IsNullOrEmpty(ReadRegistry("maxValue")) ? "100" : ReadRegistry("maxValue"));
-
-            Setting.instance.minPercent = Utils.ParseToDouble(string.IsNullOrEmpty(ReadRegistry("minPercent")) ? "10" : ReadRegistry("minPercent"));
-            Setting.instance.maxPercent = Utils.ParseToDouble(string.IsNullOrEmpty(ReadRegistry("maxPercent")) ? "100" : ReadRegistry("maxPercent"));
-
         }
     }
 }

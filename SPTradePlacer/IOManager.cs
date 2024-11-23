@@ -10,7 +10,7 @@ namespace BettingBot
 {
     class IOManager
     {
-        private static string accListFile = "accList.bin";
+        //private static string accListFile = "accList.bin";
         private static string betDataFile = "betData.bin";
 
 

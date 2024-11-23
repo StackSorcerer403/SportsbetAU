@@ -158,7 +158,7 @@ namespace BettingBot.Controller
                 HttpResponseMessage httpResp = m_httpClient.GetAsync(url).Result;
                 httpResp.EnsureSuccessStatusCode();
                 string strResp = httpResp.Content.ReadAsStringAsync().Result;
-                balance = Utils.ParseToDouble(JObject.Parse(strResp)["balance"].ToString());
+                balance = Convert.ToDouble(JObject.Parse(strResp)["balance"].ToString());
             }
             catch
             {
@@ -302,9 +302,9 @@ namespace BettingBot.Controller
                     newItem.trackTitle = marketNode["event"]["venue"].ToString();
                     newItem.type = marketNode["type"].ToString();
                     
-                    if (!Setting.instance.enableHorse && newItem.type == "horse") continue;
-                    if (!Setting.instance.enableDog && newItem.type == "greyhound") continue;
-                    if (!Setting.instance.enableHarness && newItem.type == "harness") continue;
+                    //if (!Setting.instance.enableHorse && newItem.type == "horse") continue;
+                    //if (!Setting.instance.enableDog && newItem.type == "greyhound") continue;
+                    //if (!Setting.instance.enableHarness && newItem.type == "harness") continue;
 
                     newItem.venue = marketNode["event"]["venue"].ToString();
                     newItem.directLink = marketNode["marketId"].ToString() + "|" + marketNode["event"]["id"].ToString();
@@ -319,6 +319,7 @@ namespace BettingBot.Controller
             }
             catch (Exception ex)
             {
+                LogMng.instance.PrintLog("Exception in GetBfRaceList " + ex.ToString());
             }
             _bfRaceList = raceList;
             return raceList;
@@ -464,7 +465,7 @@ namespace BettingBot.Controller
             }
             catch (Exception ex)
             {
-                //m_handlerWriteStatus("Exception in GetHorseList: " + ex.ToString());
+                LogMng.instance.PrintLog("Exception in GetHorseList: " + ex.ToString());
             }
             return horseList;
         }
@@ -517,9 +518,9 @@ namespace BettingBot.Controller
             {
                 foreach (RaceItem raceItem in _bfRaceList)
                 {
-                    if (!Setting.instance.enableHorse && raceItem.type == "horse") continue;
-                    if (!Setting.instance.enableDog && raceItem.type == "greyhound") continue;
-                    if (!Setting.instance.enableHarness && raceItem.type == "harness") continue;
+                    //if (!Setting.instance.enableHorse && raceItem.type == "horse") continue;
+                    //if (!Setting.instance.enableDog && raceItem.type == "greyhound") continue;
+                    //if (!Setting.instance.enableHarness && raceItem.type == "harness") continue;
 
                     double leftSeconds = raceItem.GetLeftSeconds();
                     if (leftSeconds <= beforeRaceOff && leftSeconds > - 60* 8)
@@ -531,6 +532,7 @@ namespace BettingBot.Controller
             }
             catch (Exception ex)
             {
+                LogMng.instance.PrintLog("Exception in getNextRaces: " + ex.ToString());
             }
             return nextRaceList;
         }
@@ -562,9 +564,9 @@ namespace BettingBot.Controller
                             {
                                 RaceItem newItem = new RaceItem();
                                 newItem.type = selection["raceType"].ToString();
-                                if (!Setting.instance.enableHorse && newItem.type == "horse") continue;
-                                if (!Setting.instance.enableDog && newItem.type == "greyhound") continue;
-                                if (!Setting.instance.enableHarness && newItem.type == "harness") continue;
+                                //if (!Setting.instance.enableHorse && newItem.type == "horse") continue;
+                                //if (!Setting.instance.enableDog && newItem.type == "greyhound") continue;
+                                //if (!Setting.instance.enableHarness && newItem.type == "harness") continue;
                                 newItem.raceStart = DateTimeOffset.FromUnixTimeSeconds(long.Parse(race.startTime.ToString())).LocalDateTime;
                                 newItem.trackTitle = meeting.name.ToString();
                                 newItem.directLink = $"https://www.sportsbet.com.au/apigw/sportsbook-racing/{race.httpLink.ToString()}";
@@ -597,10 +599,10 @@ namespace BettingBot.Controller
 
                 double percent = 100 * ((betItem.odds - betItem.layOdds) / betItem.layOdds);
                 
-                if (percent < Setting.instance.minPercent) return false;
-                if (percent > Setting.instance.maxPercent) return false;
-                if (betItem.odds < Setting.instance.minOdds) return false;
-                if (betItem.odds > Setting.instance.maxOdds) return false;
+                //if (percent < Setting.instance.minPercent) return false;
+                //if (percent > Setting.instance.maxPercent) return false;
+                //if (betItem.odds < Setting.instance.minOdds) return false;
+                //if (betItem.odds > Setting.instance.maxOdds) return false;
 
                 if (m_triedBetList.Contains(betItem.outcomeId)) return false;
                 //Place Bet

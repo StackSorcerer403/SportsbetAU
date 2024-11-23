@@ -144,7 +144,7 @@ namespace BettingBot.Controller
                     Setting.instance.EXData = data.ToString();
                     Console.WriteLine("postLiveBFOdds");
                 }
-                catch (Exception ex)
+                catch
                 {
                 }
             });

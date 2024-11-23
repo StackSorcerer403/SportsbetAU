@@ -117,7 +117,7 @@ namespace BettingBot.Json
                     default:
                         return "N/A";
                 }
-                return string.Empty;
+                //return string.Empty;
             }
 
             set { }

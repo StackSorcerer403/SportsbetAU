@@ -41,7 +41,6 @@ namespace BettingBot
         public event onWriteLogEvent onWriteLog;
         public event onWriteStatusEvent onWriteStatus;
         private Thread threadBet = null;
-        private Thread threadEventUpdater = null;
         private BookieCtrl m_betCtrl = BookieCtrl.instance;
         private List<JsonTip> _betList = new List<JsonTip>();
         private List<JsonTip> _tradeBetList = new List<JsonTip>();
@@ -57,7 +56,7 @@ namespace BettingBot
 
             this.onWriteStatus += writeStatus;
             this.onWriteLog += LogToFile;
-            this.onProcUpdateNetworkStatusEvent += procUpdateNetworkStatus;
+            //this.onProcUpdateNetworkStatusEvent += procUpdateNetworkStatus;
             this.onProcNewTipEvent += procNewTip;
             this.onProcNewTradeTipEvent += procNewTradeTip;
             m_socketConnector = new SocketConnector(onWriteLog, onWriteStatus, onProcNewTipEvent, onProcNewTradeTipEvent);
@@ -73,13 +72,13 @@ namespace BettingBot
         {
             dataSourceEvents.DataSource = _horseList;
             //this.tblEvent.RowPrePaint += new DataGridViewRowPrePaintEventHandler(this.dataGridView1_RowPrePaint);
-            foreach (DataGridViewColumn column in tblEvent.Columns)
-            {
-                column.Frozen = false;
-                column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            }
+            //foreach (DataGridViewColumn column in tblEvent.Columns)
+            //{
+            //    column.Frozen = false;
+            //    column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            //}
 
-            tblEvent.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            //tblEvent.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
         }
 
@@ -101,6 +100,7 @@ namespace BettingBot
             }
             catch (Exception e)
             {
+                this.writeStatus(e.ToString());
             }
         }
 
@@ -131,7 +131,6 @@ namespace BettingBot
 
         private void btnStart_Click(object sender1, EventArgs e1)
         {
-            toolStripStatusBot.Text = "Starting...";
             if (!canStart())
                 return;
 
@@ -150,36 +149,13 @@ namespace BettingBot
             threadBet.Start();
             //threadEventUpdater = new Thread(eventUpdaterThreadFunc);
             //threadEventUpdater.Start();
-        }
-        private void eventUpdaterThreadFunc()
-        {
-            int retryCounter = 2 * 10;
-            List<RaceItem> tabRaceList = BookieCtrl.instance.GetRaceList(true);
-            while (GlobalConstants.state == State.Running)
-            {
-                try
-                {
-                    List<RaceItem> betfairRaceList = BookieCtrl.instance.GetBfRaceList(true);
-                    int foundCounter = BookieCtrl.instance.Fill365DirectLink(tabRaceList);
-                    toolStripStatusBot.Text = $"Betfair :{betfairRaceList.Count} Sportbet:{tabRaceList.Count} Matched:{foundCounter}";
-                    Thread.Sleep(1000 * 30);
-                    if (--retryCounter <= 0)
-                    {
-                        retryCounter = 2 * 10;
-                        tabRaceList = BookieCtrl.instance.GetRaceList(true);
-                    }
-                }
-                catch
-                {
-                }
-            }
-        }
-
+        }        
         public void threadBetFunc()
         {
             DateTime lastLoadingTime = DateTime.Now;
-            Thread.Sleep(5000);            
+            Thread.Sleep(5000);     
             
+            // login part
             //if (BookieCtrl.instance.getBalance() == -1)
             //    BookieCtrl.instance.doLogin();
 
@@ -276,7 +252,14 @@ namespace BettingBot
             refreshControls(true);
             try
             {
-                threadBet.Abort();
+                if (threadBet != null)
+                {
+                    threadBet.Abort();
+                }
+                else
+                {
+                    Console.WriteLine("The thread is not initialized.");
+                }
             }
             catch
             {
@@ -345,6 +328,7 @@ namespace BettingBot
             }
             catch (System.Exception ex)
             {
+                this.writeStatus(ex.ToString());
             }
         }
 
@@ -384,32 +368,32 @@ namespace BettingBot
             }
         }
 
-        private void procUpdateNetworkStatus(bool isOnline)
-        {
-            try
-            {
-                if (lblOnline.InvokeRequired)
-                    rtLog.Invoke(onProcUpdateNetworkStatusEvent, isOnline);
-                else
-                {
-                    if (isOnline)
-                    {
-                        lblOnline.Text = "Online";
-                        lblOnline.ForeColor = System.Drawing.Color.Green;
-                    }
-                    else
-                    {
-                        lblOnline.Text = "Offline";
-                        lblOnline.ForeColor = System.Drawing.Color.Red;
-                    }
-                }
-                lblUsername.Text = Setting.instance.betUser;
-            }
-            catch (Exception ex)
-            {
-                this.writeStatus(ex.ToString());
-            }
-        }
+        //private void procUpdateNetworkStatus(bool isOnline)
+        //{
+        //    try
+        //    {
+        //        if (lblOnline.InvokeRequired)
+        //            rtLog.Invoke(onProcUpdateNetworkStatusEvent, isOnline);
+        //        else
+        //        {
+        //            if (isOnline)
+        //            {
+        //                lblOnline.Text = "Online";
+        //                lblOnline.ForeColor = System.Drawing.Color.Green;
+        //            }
+        //            else
+        //            {
+        //                lblOnline.Text = "Offline";
+        //                lblOnline.ForeColor = System.Drawing.Color.Red;
+        //            }
+        //        }
+        //        lblUsername.Text = Setting.instance.betUser;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        this.writeStatus(ex.ToString());
+        //    }
+        //}
 
         private void procNewTip(JsonTip betitem)
         {
@@ -534,6 +518,11 @@ namespace BettingBot
         }
 
         private void button1_Click_2(object sender, EventArgs e)
+        {
+
+        }
+
+        private void rtLog_TextChanged(object sender, EventArgs e)
         {
 
         }
