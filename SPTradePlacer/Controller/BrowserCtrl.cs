@@ -365,8 +365,9 @@ namespace BettingBot.Controller
                             {
 
                             }
-                            catch (Exception e)
+                            catch
                             {
+
                             }
                         });
                         chromeSession.Subscribe<ExecutionContextCreatedEvent>(executionContext =>
@@ -379,7 +380,7 @@ namespace BettingBot.Controller
                                     var frameId = auxData["frameId"].Value<string>();
                                 });
                             }
-                            catch (Exception e)
+                            catch
                             {
                             }
                         });
@@ -390,7 +391,7 @@ namespace BettingBot.Controller
                             {
 
                             }
-                            catch (Exception e)
+                            catch
                             {
                             }
                         });
@@ -409,7 +410,7 @@ namespace BettingBot.Controller
             {
 
             }
-            catch (Exception ex)
+            catch
             {
 
             }

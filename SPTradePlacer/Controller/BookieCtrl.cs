@@ -158,7 +158,7 @@ namespace BettingBot.Controller
                 HttpResponseMessage httpResp = m_httpClient.GetAsync(url).Result;
                 httpResp.EnsureSuccessStatusCode();
                 string strResp = httpResp.Content.ReadAsStringAsync().Result;
-                balance = Utils.ParseToDouble(JObject.Parse(strResp)["balance"].ToString());
+                balance = Convert.ToDouble(JObject.Parse(strResp)["balance"].ToString());
             }
             catch
             {
@@ -190,17 +190,27 @@ namespace BettingBot.Controller
             {
             }
             return false;
-        }
+        }        
         public void updateSlipBalance()
         {
             try
             {
-                // check betslip empty, if there is even one, print log betslip balance
+                // Execute the JavaScript code to get the betslip balance as a string
                 string slipBalance = BrowserCtrl.instance.ExecuteScript("document.querySelector('span[data-automation-id=\"header-bet-count\"]').innerText", true);
-                if (slip_balance != int.Parse(slipBalance))
+                // Try to parse the slipBalance string to an integer
+                if (int.TryParse(slipBalance, out int slipBalanceInt))
                 {
-                    LogMng.instance.PrintLog($"Betslip Balance={slipBalance}");
-                    slip_balance = int.Parse(slipBalance);                    
+                    // If parsing is successful, compare with existing slip_balance and update if different
+                    if (slip_balance != slipBalanceInt)
+                    {
+                        LogMng.instance.PrintLog($"Betslip Balance={slipBalanceInt}");
+                        slip_balance = slipBalanceInt;
+                    }
+                }
+                else
+                {
+                    // Log a warning if parsing fails
+                    LogMng.instance.PrintLog($"Warning: Unable to parse slip balance '{slipBalance}' as an integer.");
                 }
             }
             catch (Exception ex)
@@ -241,7 +251,7 @@ namespace BettingBot.Controller
                 int i = 0;
                 while (i < slip_balance)
                 {
-                    BrowserCtrl.instance.ExecuteScript($@" document.querySelectorAll('[data-automation-id^=""betslip-single-""] [data-automation-id=""betslip-stake""]')[{i}].focus();");
+                    BrowserCtrl.instance.ExecuteScript($@"document.querySelectorAll('[data-automation-id^=""betslip-single-""] [data-automation-id=""betslip-stake""]')[{i}].focus();");
                     BrowserCtrl.instance.ExecuteScript($@"document.querySelectorAll('[data-automation-id^=""betslip-single-""] [data-automation-id=""betslip-stake""]')[{i}].value = '';", true);
                     odds = Convert.ToDouble(BrowserCtrl.instance.ExecuteScript($@" document.querySelectorAll('[data-automation-id^=""betslip-single-""] [data-automation-id^=""betslip-bet-odds""]')[{i}].innerText", true));
                     stack = getBetStake(odds, totalReturn);
@@ -261,22 +271,42 @@ namespace BettingBot.Controller
         {
             return Math.Round(totalReturn / (odds - 1), 2);
         }
-
         public void startAutoSlip()
         {
             try
             {
                 // check if the current page is SRM or not
                 string isSRM = BrowserCtrl.instance.ExecuteScript("document.querySelector('[data-automation-id=\"contextual-nav-tab-2\"] [data-automation-id=\"pill-tab-selected-true-disabled-false\"]') !== null?true: false", true);
-                if (isSRM == "True")
-                {
-                    string stringLegs = BrowserCtrl.instance.ExecuteScript("document.querySelector('div[data-automation-id=\"multi-number-of-legs\"]').innerText", true);
-                    int legs = int.Parse(stringLegs);
-                    if (legs == 4)
+                if (isSRM == "True" && slip_balance == 0)
+                {                    
+                    int slipCount = Setting.instance.slipCount;
+                    string jsCode = @" (function() { var res = document.querySelectorAll('div[class=""outcomeDetailsSrm_f1h6e3zx""]'); return res.length.toString(); })();";
+                    int numRunner = Convert.ToInt16(BrowserCtrl.instance.ExecuteScript(jsCode, true));
+                    jsCode = @" (function() { var res = document.querySelectorAll('span[data-automation-id=""racecard-srm-outcome-label""]'); return res.length.toString(); })();";
+                    int totalNum = Convert.ToInt16(BrowserCtrl.instance.ExecuteScript(jsCode, true));
+                    int numTopMax = totalNum / numRunner;
+                    int numCombination = Combination(numRunner, numTopMax);
+                    if (numCombination < slipCount) slipCount = numCombination;
+                    var randomArrays = GenerateRandomArrays(numTopMax, slipCount, numRunner);
+                    int legs;
+                    for (int i = 0; i < randomArrays.Count; i++)
                     {
-                        BrowserCtrl.instance.ExecuteScript("document.querySelector(\"div[data-automation-id='multi-add-to-betslip-button'] button\").click()");
-                        Thread.Sleep(2000);
+                        int[] arrays = randomArrays[i];
+                        for (int j = 0; j < arrays.Length; j++)
+                        {                            
+                            addOneSlip(arrays[j], numTopMax - 1);
+                            Thread.Sleep(1000);
+                        }
+                        legs = Convert.ToInt16(BrowserCtrl.instance.ExecuteScript("document.querySelector('div[data-automation-id=\"multi-number-of-legs\"]').innerText", true));                        
+                        if (legs == numTopMax) BrowserCtrl.instance.ExecuteScript("document.querySelector(\"div[data-automation-id='multi-add-to-betslip-button'] button\").click()");
+                        Thread.Sleep(1000);
+                        for (int k = 0; k < arrays.Length; k++)
+                        {                            
+                            addOneSlip(arrays[k], numTopMax - 1);
+                            Thread.Sleep(1000);
+                        }
                     }
+
                 }
             }
             catch (Exception ex)
@@ -284,7 +314,49 @@ namespace BettingBot.Controller
                 LogMng.instance.PrintLog("Exception in AutoSlip " + ex.ToString());
             }
         }
+        public int Combination(int n, int m)
+        {
+            if (m > n) return 0; // If m is greater than n, combinations don't exist
+            int result = 1;
+            for (int i = 1; i <= m; i++)
+            {
+                result *= n - (m - i);
+                result /= i;
+            }
+            return result;
+        }
+        public List<int[]> GenerateRandomArrays(int elementNum, int arrayNum, int maxNum)
+        {
+            Random random = new Random();
+            HashSet<string> uniqueArraySet = new HashSet<string>();
+            List<int[]> randomArrays = new List<int[]>();
 
+            while (uniqueArraySet.Count < arrayNum)
+            {
+                HashSet<int> uniqueNumbers = new HashSet<int>();
+                while (uniqueNumbers.Count < elementNum)
+                {
+                    uniqueNumbers.Add(random.Next(0, maxNum));
+                }
+
+                int[] array = uniqueNumbers.OrderBy(x => x).ToArray();
+                string arrayString = string.Join(",", array);
+
+                if (uniqueArraySet.Add(arrayString))
+                {
+                    randomArrays.Add(array);
+                }
+            }
+
+            randomArrays = randomArrays.OrderBy(arr => string.Join(",", arr)).ToList();
+
+            return randomArrays;
+        }
+        public void addOneSlip(int row, int col)
+        {
+            string jsCode = $@" (function() {{ var rows = document.querySelectorAll('.outcomeDetailsSrm_f1h6e3zx'); if ({row} < rows.length) {{ var cols = rows[{row}].querySelectorAll('.border_fyn86re'); if ({col} < cols.length) {{ var tag = cols[{col}].querySelector('button'); if (tag) {{ tag.click(); }} }} }} }})(); ";
+            BrowserCtrl.instance.ExecuteScript(jsCode, true);
+        }
         public List<RaceItem> GetBfRaceList(bool bForce = false)
         {
             List<RaceItem> raceList = new List<RaceItem>();
@@ -302,9 +374,9 @@ namespace BettingBot.Controller
                     newItem.trackTitle = marketNode["event"]["venue"].ToString();
                     newItem.type = marketNode["type"].ToString();
                     
-                    if (!Setting.instance.enableHorse && newItem.type == "horse") continue;
-                    if (!Setting.instance.enableDog && newItem.type == "greyhound") continue;
-                    if (!Setting.instance.enableHarness && newItem.type == "harness") continue;
+                    //if (!Setting.instance.enableHorse && newItem.type == "horse") continue;
+                    //if (!Setting.instance.enableDog && newItem.type == "greyhound") continue;
+                    //if (!Setting.instance.enableHarness && newItem.type == "harness") continue;
 
                     newItem.venue = marketNode["event"]["venue"].ToString();
                     newItem.directLink = marketNode["marketId"].ToString() + "|" + marketNode["event"]["id"].ToString();
@@ -319,6 +391,7 @@ namespace BettingBot.Controller
             }
             catch (Exception ex)
             {
+                LogMng.instance.PrintLog("Exception in GetBfRaceList " + ex.ToString());
             }
             _bfRaceList = raceList;
             return raceList;
@@ -464,7 +537,7 @@ namespace BettingBot.Controller
             }
             catch (Exception ex)
             {
-                //m_handlerWriteStatus("Exception in GetHorseList: " + ex.ToString());
+                LogMng.instance.PrintLog("Exception in GetHorseList: " + ex.ToString());
             }
             return horseList;
         }
@@ -517,9 +590,9 @@ namespace BettingBot.Controller
             {
                 foreach (RaceItem raceItem in _bfRaceList)
                 {
-                    if (!Setting.instance.enableHorse && raceItem.type == "horse") continue;
-                    if (!Setting.instance.enableDog && raceItem.type == "greyhound") continue;
-                    if (!Setting.instance.enableHarness && raceItem.type == "harness") continue;
+                    //if (!Setting.instance.enableHorse && raceItem.type == "horse") continue;
+                    //if (!Setting.instance.enableDog && raceItem.type == "greyhound") continue;
+                    //if (!Setting.instance.enableHarness && raceItem.type == "harness") continue;
 
                     double leftSeconds = raceItem.GetLeftSeconds();
                     if (leftSeconds <= beforeRaceOff && leftSeconds > - 60* 8)
@@ -531,6 +604,7 @@ namespace BettingBot.Controller
             }
             catch (Exception ex)
             {
+                LogMng.instance.PrintLog("Exception in getNextRaces: " + ex.ToString());
             }
             return nextRaceList;
         }
@@ -562,9 +636,9 @@ namespace BettingBot.Controller
                             {
                                 RaceItem newItem = new RaceItem();
                                 newItem.type = selection["raceType"].ToString();
-                                if (!Setting.instance.enableHorse && newItem.type == "horse") continue;
-                                if (!Setting.instance.enableDog && newItem.type == "greyhound") continue;
-                                if (!Setting.instance.enableHarness && newItem.type == "harness") continue;
+                                //if (!Setting.instance.enableHorse && newItem.type == "horse") continue;
+                                //if (!Setting.instance.enableDog && newItem.type == "greyhound") continue;
+                                //if (!Setting.instance.enableHarness && newItem.type == "harness") continue;
                                 newItem.raceStart = DateTimeOffset.FromUnixTimeSeconds(long.Parse(race.startTime.ToString())).LocalDateTime;
                                 newItem.trackTitle = meeting.name.ToString();
                                 newItem.directLink = $"https://www.sportsbet.com.au/apigw/sportsbook-racing/{race.httpLink.ToString()}";
@@ -597,10 +671,10 @@ namespace BettingBot.Controller
 
                 double percent = 100 * ((betItem.odds - betItem.layOdds) / betItem.layOdds);
                 
-                if (percent < Setting.instance.minPercent) return false;
-                if (percent > Setting.instance.maxPercent) return false;
-                if (betItem.odds < Setting.instance.minOdds) return false;
-                if (betItem.odds > Setting.instance.maxOdds) return false;
+                //if (percent < Setting.instance.minPercent) return false;
+                //if (percent > Setting.instance.maxPercent) return false;
+                //if (betItem.odds < Setting.instance.minOdds) return false;
+                //if (betItem.odds > Setting.instance.maxOdds) return false;
 
                 if (m_triedBetList.Contains(betItem.outcomeId)) return false;
                 //Place Bet
