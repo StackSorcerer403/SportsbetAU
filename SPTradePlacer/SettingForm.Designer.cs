@@ -40,16 +40,16 @@
             this.label7 = new System.Windows.Forms.Label();
             this.setCurrency = new System.Windows.Forms.DomainUpDown();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.numSlipCount = new System.Windows.Forms.NumericUpDown();
+            this.label1 = new System.Windows.Forms.Label();
             this.chkAutoStaker = new System.Windows.Forms.CheckBox();
             this.chkAutoSlip = new System.Windows.Forms.CheckBox();
             this.numTotalReturn = new System.Windows.Forms.NumericUpDown();
             this.label2 = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
-            this.numSlipCount = new System.Windows.Forms.NumericUpDown();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numTotalReturn)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numSlipCount)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numTotalReturn)).BeginInit();
             this.SuspendLayout();
             // 
             // btnCancel
@@ -183,6 +183,40 @@
             this.groupBox2.Text = "Filter";
             this.groupBox2.Enter += new System.EventHandler(this.groupBox2_Enter);
             // 
+            // numSlipCount
+            // 
+            this.numSlipCount.BackColor = System.Drawing.SystemColors.ScrollBar;
+            this.numSlipCount.Location = new System.Drawing.Point(96, 83);
+            this.numSlipCount.Maximum = new decimal(new int[] {
+            25,
+            0,
+            0,
+            0});
+            this.numSlipCount.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.numSlipCount.Name = "numSlipCount";
+            this.numSlipCount.Size = new System.Drawing.Size(80, 20);
+            this.numSlipCount.TabIndex = 69;
+            this.numSlipCount.Value = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            this.numSlipCount.ValueChanged += new System.EventHandler(this.numSlipCount_ValueChanged);
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(21, 85);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(58, 13);
+            this.label1.TabIndex = 68;
+            this.label1.Text = "Slip Count:";
+            this.label1.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
             // chkAutoStaker
             // 
             this.chkAutoStaker.AutoSize = true;
@@ -234,39 +268,6 @@
             this.label2.TextAlign = System.Drawing.ContentAlignment.TopRight;
             this.label2.Click += new System.EventHandler(this.label2_Click);
             // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(21, 85);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(58, 13);
-            this.label1.TabIndex = 68;
-            this.label1.Text = "Slip Count:";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.TopRight;
-            // 
-            // numSlipCount
-            // 
-            this.numSlipCount.BackColor = System.Drawing.SystemColors.ScrollBar;
-            this.numSlipCount.Location = new System.Drawing.Point(96, 83);
-            this.numSlipCount.Maximum = new decimal(new int[] {
-            25,
-            0,
-            0,
-            0});
-            this.numSlipCount.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.numSlipCount.Name = "numSlipCount";
-            this.numSlipCount.Size = new System.Drawing.Size(80, 20);
-            this.numSlipCount.TabIndex = 69;
-            this.numSlipCount.Value = new decimal(new int[] {
-            10,
-            0,
-            0,
-            0});
-            // 
             // SettingForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -290,8 +291,8 @@
             this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numTotalReturn)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numSlipCount)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numTotalReturn)).EndInit();
             this.ResumeLayout(false);
 
         }

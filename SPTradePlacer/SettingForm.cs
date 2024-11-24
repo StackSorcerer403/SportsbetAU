@@ -34,7 +34,8 @@ namespace BettingBot
             txtBetPass.Text = Setting.instance.betPassword;          
             chkAutoSlip.Checked = Setting.instance.enableAutoSlip;
             chkAutoStaker.Checked = Setting.instance.enableAutoStaker;
-
+            numTotalReturn.Value = (decimal)Setting.instance.totalReturn;
+            numSlipCount.Value = (decimal)Setting.instance.slipCount;
             //numBeforeKickoff.Value = (decimal)Setting.instance.beforeKickoff;
 
         }
@@ -61,7 +62,8 @@ namespace BettingBot
             Setting.instance.betPassword = txtBetPass.Text;
             Setting.instance.currency    = setCurrency.Text;
 
-            Setting.instance.totalReturn = (double)numTotalReturn.Value;            
+            Setting.instance.totalReturn = (double)numTotalReturn.Value;
+            Setting.instance.slipCount = (int)numSlipCount.Value;
             Setting.instance.enableAutoSlip = chkAutoSlip.Checked;
             Setting.instance.enableAutoStaker = chkAutoStaker.Checked;
         }
@@ -112,6 +114,11 @@ namespace BettingBot
         }
 
         private void chkAutoSlip_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void numSlipCount_ValueChanged(object sender, EventArgs e)
         {
 
         }

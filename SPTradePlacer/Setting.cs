@@ -34,7 +34,8 @@ namespace BettingBot
         public string currency { get; set; }        
         public double flatStake { get; set; }
         public double beforeKickoff { get; set; }
-        public double totalReturn { get; set; }        
+        public double totalReturn { get; set; }
+        public int slipCount { get; set; }
         public dynamic BotSetting { get; set; }
         public bool isOnline { get; set; }        
         public bool enableAutoSlip { get; internal set; }
@@ -84,6 +85,7 @@ namespace BettingBot
             WriteRegistry("currency", Setting.instance.currency);
             WriteRegistry("beforeKickoff", Setting.instance.beforeKickoff.ToString());
             WriteRegistry("totalReturn", Setting.instance.totalReturn.ToString());
+            WriteRegistry("slipCount", Setting.instance.slipCount.ToString());
             WriteRegistry("flatStake", Setting.instance.flatStake.ToString());
             WriteRegistry("enableAutoSlip", Setting.instance.enableAutoSlip ? "true" : "false");
             WriteRegistry("enableAutoStaker", Setting.instance.enableAutoStaker ? "true" : "false");
@@ -110,7 +112,7 @@ namespace BettingBot
             Setting.instance.enableAutoStaker = ReadRegistry("enableAutoStaker") == "true";
             Setting.instance.beforeKickoff = Utils.ParseToDouble(string.IsNullOrEmpty(ReadRegistry("beforeKickoff")) ? "300" : ReadRegistry("beforeKickoff"));
             Setting.instance.totalReturn = Utils.ParseToDouble(string.IsNullOrEmpty(ReadRegistry("totalReturn")) ? "8000" : ReadRegistry("totalReturn"));
-
+            Setting.instance.slipCount= Convert.ToInt16(string.IsNullOrEmpty(ReadRegistry("slipCount")) ? "10" : ReadRegistry("slipCount"));
 
             Setting.instance.flatStake = Utils.ParseToDouble(string.IsNullOrEmpty(ReadRegistry("flatStake")) ? "2" : ReadRegistry("flatStake"));
         }
