@@ -76,7 +76,7 @@ namespace BettingBot.Controller
         {
             m_cookieContainer = new CookieContainer();
             ReadCookiesFromDisk();
-            InitHttpClient();
+            //InitHttpClient();
             PlacedBetList = IOManager.readBetData();
         }
 
@@ -109,7 +109,7 @@ namespace BettingBot.Controller
                 AutoItX.Send("^a");
                 // Delete
                 AutoItX.Send("{DEL}");
-                AutoItX.Send(Setting.instance.betUser);
+                AutoItX.Send(MainForm.instance.betUser);
                 Thread.Sleep(1000);
 
                 //template = new Bitmap(".\\templates\\login\\password.png");
@@ -121,7 +121,7 @@ namespace BettingBot.Controller
                 AutoItX.Send("^a");
                 // Delete 
                 AutoItX.Send("{DEL}");
-                AutoIt.AutoItX.Send(Setting.instance.betPassword.Replace("!", "{!}"));
+                AutoIt.AutoItX.Send(MainForm.instance.betPassword.Replace("!", "{!}"));
                 Thread.Sleep(1000);
 
                 template = new Bitmap(".\\templates\\login\\btnLogin.png");
@@ -135,8 +135,8 @@ namespace BettingBot.Controller
                     Thread.Sleep(1000);
                     string accessToken = BrowserCtrl.instance.ExecuteScript("JSON.parse(localStorage.getItem(\"redux-localstorage\")).ui.user.session.accessToken", true);
                     LogMng.instance.PrintLog($"Access Token = {accessToken}");
-                    Setting.instance.fingerPrint = accessToken;
-                    Setting.instance.saveSettingInfo();
+                    //Setting.instance.fingerPrint = accessToken;
+                    //Setting.instance.saveSettingInfo();
                     return true;
                 }
             }
@@ -152,13 +152,13 @@ namespace BettingBot.Controller
             double balance = -1;
             try
             {
-                if (string.IsNullOrEmpty(Setting.instance.fingerPrint)) return balance;
-                string url = "https://www.sportsbet.com.au/apigw/accounts/balance?pendingbetcount=true&freebetcount=true&jointAccountBalance=true";
-                m_httpClient.DefaultRequestHeaders.TryAddWithoutValidation("accesstoken", Setting.instance.fingerPrint);
-                HttpResponseMessage httpResp = m_httpClient.GetAsync(url).Result;
-                httpResp.EnsureSuccessStatusCode();
-                string strResp = httpResp.Content.ReadAsStringAsync().Result;
-                balance = Convert.ToDouble(JObject.Parse(strResp)["balance"].ToString());
+                //if (string.IsNullOrEmpty(Setting.instance.fingerPrint)) return balance;
+                //string url = "https://www.sportsbet.com.au/apigw/accounts/balance?pendingbetcount=true&freebetcount=true&jointAccountBalance=true";
+                //m_httpClient.DefaultRequestHeaders.TryAddWithoutValidation("accesstoken", Setting.instance.fingerPrint);
+                //HttpResponseMessage httpResp = m_httpClient.GetAsync(url).Result;
+                //httpResp.EnsureSuccessStatusCode();
+                //string strResp = httpResp.Content.ReadAsStringAsync().Result;
+                //balance = Convert.ToDouble(JObject.Parse(strResp)["balance"].ToString());
             }
             catch
             {
@@ -182,8 +182,8 @@ namespace BettingBot.Controller
                 m_balance = Utils.ParseToDouble(curBalance);
                 string accessToken = BrowserCtrl.instance.ExecuteScript("JSON.parse(localStorage.getItem(\"redux-localstorage\")).ui.user.session.accessToken", true);
                 LogMng.instance.PrintLog($"Access Token = {accessToken}");
-                Setting.instance.fingerPrint = accessToken;
-                Setting.instance.saveSettingInfo();
+                //Setting.instance.fingerPrint = accessToken;
+                //Setting.instance.saveSettingInfo();
                 return true;
             }
             catch
@@ -247,7 +247,7 @@ namespace BettingBot.Controller
             try
             {                
                 // factors of stack formula
-                double odds, stack, totalReturn = Setting.instance.totalReturn;
+                double odds, stack, totalReturn = MainForm.instance.totalReturn;
                 int i = 0;
                 while (i < slip_balance)
                 {
@@ -279,34 +279,32 @@ namespace BettingBot.Controller
                 string isSRM = BrowserCtrl.instance.ExecuteScript("document.querySelector('[data-automation-id=\"contextual-nav-tab-2\"] [data-automation-id=\"pill-tab-selected-true-disabled-false\"]') !== null?true: false", true);
                 if (isSRM == "True" && slip_balance == 0)
                 {                    
-                    int slipCount = Setting.instance.slipCount;
+                    int slipCount = MainForm.instance.slipCount;
                     string jsCode = @" (function() { var res = document.querySelectorAll('div[class=""outcomeDetailsSrm_f1h6e3zx""]'); return res.length.toString(); })();";
                     int numRunner = Convert.ToInt16(BrowserCtrl.instance.ExecuteScript(jsCode, true));
+                    if (numRunner == 0) return;
                     jsCode = @" (function() { var res = document.querySelectorAll('span[data-automation-id=""racecard-srm-outcome-label""]'); return res.length.toString(); })();";
                     int totalNum = Convert.ToInt16(BrowserCtrl.instance.ExecuteScript(jsCode, true));
                     int numTopMax = totalNum / numRunner;
                     int numCombination = Combination(numRunner, numTopMax);
                     if (numCombination < slipCount) slipCount = numCombination;
                     var randomArrays = GenerateRandomArrays(numTopMax, slipCount, numRunner);
-                    int legs;
-                    for (int i = 0; i < randomArrays.Count; i++)
+                    foreach (var arrays in randomArrays)
                     {
-                        int[] arrays = randomArrays[i];
                         for (int j = 0; j < arrays.Length; j++)
-                        {                            
+                        {
                             addOneSlip(arrays[j], numTopMax - 1);
                             Thread.Sleep(1000);
                         }
-                        legs = Convert.ToInt16(BrowserCtrl.instance.ExecuteScript("document.querySelector('div[data-automation-id=\"multi-number-of-legs\"]').innerText", true));                        
-                        if (legs == numTopMax) BrowserCtrl.instance.ExecuteScript("document.querySelector(\"div[data-automation-id='multi-add-to-betslip-button'] button\").click()");
+                        Thread.Sleep(1000);
+                        BrowserCtrl.instance.ExecuteScript("document.querySelector(\"div[data-automation-id='multi-add-to-betslip-button'] button\").click()");
                         Thread.Sleep(1000);
                         for (int k = 0; k < arrays.Length; k++)
                         {                            
                             addOneSlip(arrays[k], numTopMax - 1);
-                            Thread.Sleep(1000);
+                            Thread.Sleep(500);
                         }
                     }
-
                 }
             }
             catch (Exception ex)
@@ -315,7 +313,7 @@ namespace BettingBot.Controller
             }
         }
         public int Combination(int n, int m)
-        {
+        {            
             if (m > n) return 0; // If m is greater than n, combinations don't exist
             int result = 1;
             for (int i = 1; i <= m; i++)
@@ -353,9 +351,16 @@ namespace BettingBot.Controller
             return randomArrays;
         }
         public void addOneSlip(int row, int col)
-        {
-            string jsCode = $@" (function() {{ var rows = document.querySelectorAll('.outcomeDetailsSrm_f1h6e3zx'); if ({row} < rows.length) {{ var cols = rows[{row}].querySelectorAll('.border_fyn86re'); if ({col} < cols.length) {{ var tag = cols[{col}].querySelector('button'); if (tag) {{ tag.click(); }} }} }} }})(); ";
-            BrowserCtrl.instance.ExecuteScript(jsCode, true);
+        {            
+            try
+            {
+                string jsCode = $@" (function() {{ var rows = document.querySelectorAll('.outcomeDetailsSrm_f1h6e3zx'); if ({row} < rows.length) {{ var cols = rows[{row}].querySelectorAll('.border_fyn86re'); if ({col} < cols.length) {{ var tag = cols[{col}].querySelector('button'); if (tag) {{ tag.click(); }} }} }} }})(); ";
+                BrowserCtrl.instance.ExecuteScript(jsCode, true);
+            }
+            catch (Exception ex)
+            {
+                LogMng.instance.PrintLog("Exception in addOneSlip " + ex.ToString());
+            }
         }
         public List<RaceItem> GetBfRaceList(bool bForce = false)
         {
@@ -363,31 +368,31 @@ namespace BettingBot.Controller
             try
             {
 
-                if (string.IsNullOrEmpty(Setting.instance.EXData)) return raceList;
-                JArray marketList = JsonConvert.DeserializeObject<JArray>(Setting.instance.EXData);
-                foreach (var marketNode in marketList)
-                {
-                    string countryCode = marketNode["event"]["countryCode"].ToString();
-                    if (!countryCode.Equals("AU") && !countryCode.Contains("NZ"))
-                        continue;
-                    RaceItem newItem = new RaceItem();
-                    newItem.trackTitle = marketNode["event"]["venue"].ToString();
-                    newItem.type = marketNode["type"].ToString();
+                //if (string.IsNullOrEmpty(Setting.instance.EXData)) return raceList;
+                //JArray marketList = JsonConvert.DeserializeObject<JArray>(Setting.instance.EXData);
+                //foreach (var marketNode in marketList)
+                //{
+                //    string countryCode = marketNode["event"]["countryCode"].ToString();
+                //    if (!countryCode.Equals("AU") && !countryCode.Contains("NZ"))
+                //        continue;
+                //    RaceItem newItem = new RaceItem();
+                //    newItem.trackTitle = marketNode["event"]["venue"].ToString();
+                //    newItem.type = marketNode["type"].ToString();
                     
-                    //if (!Setting.instance.enableHorse && newItem.type == "horse") continue;
-                    //if (!Setting.instance.enableDog && newItem.type == "greyhound") continue;
-                    //if (!Setting.instance.enableHarness && newItem.type == "harness") continue;
+                //    //if (!Setting.instance.enableHorse && newItem.type == "horse") continue;
+                //    //if (!Setting.instance.enableDog && newItem.type == "greyhound") continue;
+                //    //if (!Setting.instance.enableHarness && newItem.type == "harness") continue;
 
-                    newItem.venue = marketNode["event"]["venue"].ToString();
-                    newItem.directLink = marketNode["marketId"].ToString() + "|" + marketNode["event"]["id"].ToString();
-                    newItem.raceTitle = marketNode["event"]["name"].ToString();
-                    newItem.marketName = marketNode["marketName"].ToString();
-                    newItem.winMarketId = marketNode["marketId"].ToString();
-                    newItem.raceId = marketNode["event"]["id"].ToString();
-                    newItem.raceStart = DateTime.Parse(marketNode["marketStartTime"].ToString());
-                    //newItem.horseList = GetHorseList(newItem.winMarketId);
-                    raceList.Add(newItem);
-                }
+                //    newItem.venue = marketNode["event"]["venue"].ToString();
+                //    newItem.directLink = marketNode["marketId"].ToString() + "|" + marketNode["event"]["id"].ToString();
+                //    newItem.raceTitle = marketNode["event"]["name"].ToString();
+                //    newItem.marketName = marketNode["marketName"].ToString();
+                //    newItem.winMarketId = marketNode["marketId"].ToString();
+                //    newItem.raceId = marketNode["event"]["id"].ToString();
+                //    newItem.raceStart = DateTime.Parse(marketNode["marketStartTime"].ToString());
+                //    //newItem.horseList = GetHorseList(newItem.winMarketId);
+                //    raceList.Add(newItem);
+                //}
             }
             catch (Exception ex)
             {
@@ -497,43 +502,43 @@ namespace BettingBot.Controller
             List<HorseItem> horseList = new List<HorseItem>();
             try
             {
-                if (string.IsNullOrEmpty(Setting.instance.EXData)) return horseList;
-                JArray marketList = JsonConvert.DeserializeObject<JArray>(Setting.instance.EXData);
-                foreach (var marketNode in marketList)
-                {
-                    if (!marketNode["marketId"].ToString().Equals(directLink)) continue;
-                    if (marketNode["status"] != null && marketNode["status"].ToString() != "OPEN")
-                        continue;
-                    JArray runners = marketNode["runners"].ToObject<JArray>();
+                //if (string.IsNullOrEmpty(Setting.instance.EXData)) return horseList;
+                //JArray marketList = JsonConvert.DeserializeObject<JArray>(Setting.instance.EXData);
+                //foreach (var marketNode in marketList)
+                //{
+                //    if (!marketNode["marketId"].ToString().Equals(directLink)) continue;
+                //    if (marketNode["status"] != null && marketNode["status"].ToString() != "OPEN")
+                //        continue;
+                //    JArray runners = marketNode["runners"].ToObject<JArray>();
 
-                    foreach (JObject runner in runners)
-                    {
-                        string runnerName = runner["runnerName"].ToString().Trim();
-                        int runnerNo = int.Parse(runner["sortPriority"].ToString());
+                //    foreach (JObject runner in runners)
+                //    {
+                //        string runnerName = runner["runnerName"].ToString().Trim();
+                //        int runnerNo = int.Parse(runner["sortPriority"].ToString());
 
-                        string runnerTitle = runnerName.Split('.')[1];
-                        HorseItem newItem = new HorseItem();
-                        //m_handlerWriteStatus(" - " + runnerName);
-                        newItem.title = runnerTitle;
-                        newItem.no = runnerNo;
-                        newItem.marketId = directLink;
-                        newItem.selectionId = runner["selectionId"].ToString();
-                        if (runner["ex"] == null) continue;
-                        if (runner["ex"]["availableToBack"] == null) continue;
-                        try
-                        {
-                            double backOdds = Utils.ParseToDouble(runner["ex"]["availableToBack"][0]["price"].ToString());
-                            double layOdds = Utils.ParseToDouble(runner["ex"]["availableToLay"][0]["price"].ToString());
-                            newItem.odds = (layOdds + layOdds) / 2;
-                            newItem.backOdds = backOdds;
-                            newItem.layOdds = layOdds;
-                        }
-                        catch
-                        {
-                        }
-                        horseList.Add(newItem);
-                    }
-                }
+                //        string runnerTitle = runnerName.Split('.')[1];
+                //        HorseItem newItem = new HorseItem();
+                //        //m_handlerWriteStatus(" - " + runnerName);
+                //        newItem.title = runnerTitle;
+                //        newItem.no = runnerNo;
+                //        newItem.marketId = directLink;
+                //        newItem.selectionId = runner["selectionId"].ToString();
+                //        if (runner["ex"] == null) continue;
+                //        if (runner["ex"]["availableToBack"] == null) continue;
+                //        try
+                //        {
+                //            double backOdds = Utils.ParseToDouble(runner["ex"]["availableToBack"][0]["price"].ToString());
+                //            double layOdds = Utils.ParseToDouble(runner["ex"]["availableToLay"][0]["price"].ToString());
+                //            newItem.odds = (layOdds + layOdds) / 2;
+                //            newItem.backOdds = backOdds;
+                //            newItem.layOdds = layOdds;
+                //        }
+                //        catch
+                //        {
+                //        }
+                //        horseList.Add(newItem);
+                //    }
+                //}
             }
             catch (Exception ex)
             {
@@ -682,7 +687,7 @@ namespace BettingBot.Controller
                 LogMng.instance.PrintLog($"{betItem.no} {betItem.title} odds:{betItem.odds} bf odds:{betItem.layOdds} percent:{percent}");
                 string randomString = Guid.NewGuid().ToString("N").Substring(0, 29);
                 string url = "https://www.sportsbet.com.au/apigw/acs/bets";
-                m_httpClient.DefaultRequestHeaders.TryAddWithoutValidation("accesstoken", Setting.instance.fingerPrint);
+                //m_httpClient.DefaultRequestHeaders.TryAddWithoutValidation("accesstoken", Setting.instance.fingerPrint);
                 m_httpClient.DefaultRequestHeaders.TryAddWithoutValidation("transuniqueid", randomString);
                 string strData = @"
                 {
@@ -725,7 +730,7 @@ namespace BettingBot.Controller
                 JObject jsonData = JObject.Parse(strData);
                 betIndex++;
                 jsonData["betItems"][0]["betNo"] = betIndex;
-                jsonData["betItems"][0]["stakePerLine"] = Setting.instance.flatStake;
+                //jsonData["betItems"][0]["stakePerLine"] = Setting.instance.flatStake;
                 jsonData["betItems"][0]["legs"][0]["legNo"] = betIndex;
                 jsonData["betItems"][0]["legs"][0]["parts"][0]["outcome"] = betItem.outcomeId;
                 jsonData["betItems"][0]["legs"][0]["parts"][0]["priceNum"] = JObject.Parse(betItem.priceData)["winPriceNum"];
@@ -743,7 +748,7 @@ namespace BettingBot.Controller
                 if (jsonResp["betPlacements"] != null && jsonResp["betPlacements"].Count() > 0)
                 {
                     m_triedBetList.Add(betItem.outcomeId);
-                    betItem.stake = Setting.instance.flatStake;
+                    //betItem.stake = Setting.instance.flatStake;
                     betItem.percent = percent;
                     PlacedBetList.Add(betItem);
                     LogMng.instance.PrintLog($"Bet Success | balance ={m_balance}$");
@@ -771,10 +776,10 @@ namespace BettingBot.Controller
             try
             {
                 if (!doCheckLogged(1)) BookieCtrl.instance.doLogin();
-                string strStake = (Setting.instance.flatStake * 100).ToString();
-                string strScript = "{\"T\":1,\"A\":" + strStake +  ",\"B\":[{\"BID\":" + marketId + ",\"O\":" + (odds* 1000).ToString() + "}],\"CV\":\"2.109.2-desktop\",\"locale\":\"es\"}";
+                //string strStake = (Setting.instance.flatStake * 100).ToString();
+                //string strScript = "{\"T\":1,\"A\":" + strStake +  ",\"B\":[{\"BID\":" + marketId + ",\"O\":" + (odds* 1000).ToString() + "}],\"CV\":\"2.109.2-desktop\",\"locale\":\"es\"}";
                 BrowserCtrl.instance.ExecuteScript(File.ReadAllText("inject.txt"));
-                BrowserCtrl.instance.ExecuteScript($"sendPlaceBet('{strScript}')");
+                //BrowserCtrl.instance.ExecuteScript($"sendPlaceBet('{strScript}')");
                 _BetResp = null;
                 int retryCounter = 10 * 4;
                 while(_BetResp == null || --retryCounter > 0)
@@ -815,50 +820,50 @@ namespace BettingBot.Controller
         }
 
 
-        protected void InitHttpClient()
-        {
+        //protected void InitHttpClient()
+        //{
 
-            HttpClientHandler handler = new HttpClientHandler()
-            {
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-            };
-            if (!string.IsNullOrEmpty(Setting.instance.proxy) && !string.IsNullOrEmpty(Setting.instance.proxyUser) && !string.IsNullOrEmpty(Setting.instance.proxyPass))
-            {
-                var useAuth = true;
-                var credentials = new NetworkCredential(Setting.instance.proxyUser, Setting.instance.proxyPass);
-                WebProxy proxyItem = new WebProxy(Setting.instance.proxy);
-                proxyItem.Credentials = credentials;
-                handler = new HttpClientHandler()
-                {
-                    Proxy = proxyItem,
-                    UseProxy = true,
-                    PreAuthenticate = useAuth,
-                    UseDefaultCredentials = !useAuth,
-                };
-            }else if (!string.IsNullOrEmpty(Setting.instance.proxy))
-            {
-                WebProxy proxyItem;
-                var useAuth = false;
-                proxyItem = new WebProxy(Setting.instance.proxy);
-                handler = new HttpClientHandler()
-                {
-                    Proxy = proxyItem,
-                    UseProxy = true,
-                    PreAuthenticate = useAuth,
-                    UseDefaultCredentials = !useAuth,
-                };
-            }
+        //    HttpClientHandler handler = new HttpClientHandler()
+        //    {
+        //        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+        //    };
+        //    if (!string.IsNullOrEmpty(Setting.instance.proxy) && !string.IsNullOrEmpty(Setting.instance.proxyUser) && !string.IsNullOrEmpty(Setting.instance.proxyPass))
+        //    {
+        //        var useAuth = true;
+        //        var credentials = new NetworkCredential(Setting.instance.proxyUser, Setting.instance.proxyPass);
+        //        WebProxy proxyItem = new WebProxy(Setting.instance.proxy);
+        //        proxyItem.Credentials = credentials;
+        //        handler = new HttpClientHandler()
+        //        {
+        //            Proxy = proxyItem,
+        //            UseProxy = true,
+        //            PreAuthenticate = useAuth,
+        //            UseDefaultCredentials = !useAuth,
+        //        };
+        //    }else if (!string.IsNullOrEmpty(Setting.instance.proxy))
+        //    {
+        //        WebProxy proxyItem;
+        //        var useAuth = false;
+        //        proxyItem = new WebProxy(Setting.instance.proxy);
+        //        handler = new HttpClientHandler()
+        //        {
+        //            Proxy = proxyItem,
+        //            UseProxy = true,
+        //            PreAuthenticate = useAuth,
+        //            UseDefaultCredentials = !useAuth,
+        //        };
+        //    }
 
-            handler.CookieContainer = m_cookieContainer;
-            m_httpClient = new HttpClient(handler);
-            m_httpClient.Timeout = new TimeSpan(0, 0, 100);
-            ServicePointManager.DefaultConnectionLimit = 2;
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-            m_httpClient.DefaultRequestHeaders.ExpectContinue = false;
-            ChangeDefaultHeaders();
-            m_cookieContainer.Add(new Uri(m_domain), new Cookie("CSRF-TOKEN", CSRF));
-        }
+        //    handler.CookieContainer = m_cookieContainer;
+        //    m_httpClient = new HttpClient(handler);
+        //    m_httpClient.Timeout = new TimeSpan(0, 0, 100);
+        //    ServicePointManager.DefaultConnectionLimit = 2;
+        //    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+        //    ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+        //    m_httpClient.DefaultRequestHeaders.ExpectContinue = false;
+        //    ChangeDefaultHeaders();
+        //    m_cookieContainer.Add(new Uri(m_domain), new Cookie("CSRF-TOKEN", CSRF));
+        //}
 
         protected virtual void ChangeDefaultHeaders()
         {

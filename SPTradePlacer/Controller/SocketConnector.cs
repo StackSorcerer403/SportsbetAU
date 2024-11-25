@@ -96,60 +96,60 @@ namespace BettingBot.Controller
             return false;
         }
 
-        async public void startListening()
-        {
-            Setting setting = Setting.instance;
-            if (_socket != null)
-            {
-                await _socket.DisconnectAsync();
-                _socket = null;
-            }
+        //async public void startListening()
+        //{
+        //    Setting setting = Setting.instance;
+        //    if (_socket != null)
+        //    {
+        //        await _socket.DisconnectAsync();
+        //        _socket = null;
+        //    }
 
-            _socket = new SocketIoClient();
+        //    _socket = new SocketIoClient();
 
-            _socket.Connected += async (sender, e) =>
-            {
-                if (GlobalConstants.validationState != ValidationState.SUCCESS)
-                {
-                    SendPresentInfo(-1);
-                }
-                Setting.instance.isOnline = true;
-                m_handlerProcUpdateNetworkStatus(true);
-            };
+        //    _socket.Connected += async (sender, e) =>
+        //    {
+        //        if (GlobalConstants.validationState != ValidationState.SUCCESS)
+        //        {
+        //            SendPresentInfo(-1);
+        //        }
+        //        Setting.instance.isOnline = true;
+        //        m_handlerProcUpdateNetworkStatus(true);
+        //    };
 
-            _socket.Disconnected += async (sender, e) =>
-            {
-                try
-                {
-                    Setting.instance.isOnline = false;
-                    m_handlerProcUpdateNetworkStatus(false);
-                }
-                catch
-                {
-                }
-            };
+        //    _socket.Disconnected += async (sender, e) =>
+        //    {
+        //        try
+        //        {
+        //            Setting.instance.isOnline = false;
+        //            m_handlerProcUpdateNetworkStatus(false);
+        //        }
+        //        catch
+        //        {
+        //        }
+        //    };
 
-            _socket.ErrorReceived += async (sender, e) =>
-            {
-                Setting.instance.isOnline = false;
-                m_handlerProcUpdateNetworkStatus(false);
-            };
+        //    _socket.ErrorReceived += async (sender, e) =>
+        //    {
+        //        Setting.instance.isOnline = false;
+        //        m_handlerProcUpdateNetworkStatus(false);
+        //    };
 
 
 
-            _socket.On("postLiveBFOdds", (data) =>
-            {
-                try
-                {
-                    Setting.instance.EXData = data.ToString();
-                    Console.WriteLine("postLiveBFOdds");
-                }
-                catch
-                {
-                }
-            });
-            await _socket.ConnectAsync(new Uri("http://172.86.76.129:8888"));
-        }
+        //    _socket.On("postLiveBFOdds", (data) =>
+        //    {
+        //        try
+        //        {
+        //            Setting.instance.EXData = data.ToString();
+        //            Console.WriteLine("postLiveBFOdds");
+        //        }
+        //        catch
+        //        {
+        //        }
+        //    });
+        //    await _socket.ConnectAsync(new Uri("http://172.86.76.129:8888"));
+        //}
 
 
         public void SendPresentInfo(double curbalance)

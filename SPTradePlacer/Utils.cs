@@ -15,7 +15,7 @@ namespace BettingBot
 
         public static double ParseToDouble(string str)
         {
-            culture = CultureInfo.CreateSpecificCulture(Setting.instance.currency);
+            //culture = CultureInfo.CreateSpecificCulture(Setting.instance.currency);
             double value = 0;
             double.TryParse(str, style, culture, out value);
             return value;
