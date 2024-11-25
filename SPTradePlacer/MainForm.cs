@@ -22,6 +22,7 @@ using System.Net.Http.Headers;
 using System.Net.Http;
 using TipsterSW.Constant;
 using System.Security.Cryptography;
+using Microsoft.Win32;
 
 namespace BettingBot
 {
@@ -34,7 +35,21 @@ namespace BettingBot
 
     public partial class MainForm : Form
     {
-
+        private static MainForm _instance = null;
+        public static MainForm instance {
+            get
+            {
+                if (_instance == null)
+                    _instance = new MainForm();
+                return _instance;
+            }
+        }
+        public string betUser { get; set; }
+        public string betPassword { get; set; }
+        public double totalReturn { get; set; }
+        public int slipCount { get; set; }
+        public bool enableAutoSlip { get; internal set; }
+        public bool enableAutoStaker { get; internal set; }
         public event onProcUpdateNetworkStatusEvent onProcUpdateNetworkStatusEvent;
         public event onProcNewTipEvent onProcNewTipEvent;
         public event onProcNewTradeTipEvent onProcNewTradeTipEvent;
@@ -51,9 +66,8 @@ namespace BettingBot
         public MainForm()
         {
             InitializeComponent();
-
-            Setting.instance.loadSettingInfo();
-
+            loadSettingInfo();
+            InitSettingValues();
             this.onWriteStatus += writeStatus;
             this.onWriteLog += LogToFile;
             //this.onProcUpdateNetworkStatusEvent += procUpdateNetworkStatus;
@@ -66,6 +80,15 @@ namespace BettingBot
             GuiAutomation.CreateInstance();
             dataSourceBets.DataSource = m_socketConnector.m_placedBetList;
             InitializeDataGridView();
+        }
+        private void InitSettingValues()
+        {
+            betUser = txtBetUser.Text;
+            betPassword = txtBetPass.Text;
+            enableAutoSlip = chkAutoSlip.Checked;
+            enableAutoStaker = chkAutoStaker.Checked;
+            totalReturn = (double)numTotalReturn.Value;
+            slipCount = (int)numSlipCount.Value;
         }
 
         private void InitializeDataGridView()
@@ -81,13 +104,48 @@ namespace BettingBot
             //tblEvent.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
         }
-
-        private void btnSetting_Click(object sender, EventArgs e)
+        public string ReadRegistry(string KeyName)
         {
-            SettingForm frm = new SettingForm();
-            DialogResult res = frm.ShowDialog();
+            try
+            {
+                return Registry.CurrentUser.CreateSubKey("SoftWare").CreateSubKey("Noah_sportsbet").GetValue(KeyName, (object)"").ToString();
+            }
+            catch
+            {
+
+            }
+            return string.Empty;
+        }
+        public void WriteRegistry(string KeyName, string KeyValue)
+        {
+            try
+            {
+                Registry.CurrentUser.CreateSubKey("SoftWare").CreateSubKey("Noah_sportsbet").SetValue(KeyName, (object)KeyValue);
+            }
+            catch
+            {
+
+            }
+        }
+        private void saveSettingInfo()
+        {
+            WriteRegistry("betUser", txtBetUser.Text);
+            WriteRegistry("betPassword", txtBetPass.Text);
+            WriteRegistry("totalReturn", numTotalReturn.Value.ToString());
+            WriteRegistry("slipCount", numSlipCount.Value.ToString());
+            WriteRegistry("enableAutoSlip", chkAutoSlip.Checked ? "true" : "false");
+            WriteRegistry("enableAutoStaker", chkAutoStaker.Checked ? "true" : "false");
         }
 
+        public void loadSettingInfo()
+        {
+            txtBetUser.Text = ReadRegistry("betUser");
+            txtBetPass.Text = ReadRegistry("betPassword");
+            chkAutoSlip.Checked = ReadRegistry("enableAutoSlip") == "true";
+            chkAutoStaker.Checked = ReadRegistry("enableAutoStaker") == "true";
+            numTotalReturn.Value = (decimal)Convert.ToDouble(string.IsNullOrEmpty(ReadRegistry("totalReturn")) ? "8000" : ReadRegistry("totalReturn"));
+            numSlipCount.Value = Convert.ToInt16(string.IsNullOrEmpty(ReadRegistry("slipCount")) ? "10" : ReadRegistry("slipCount"));
+        }
         private void refreshControls(bool state)
         {
             try
@@ -111,8 +169,8 @@ namespace BettingBot
                 MessageBox.Show(this, "The bot has been started already!");
                 return false;
             }
-            if (string.IsNullOrEmpty(Setting.instance.betUser) ||
-                string.IsNullOrEmpty(Setting.instance.betPassword))
+            if (string.IsNullOrEmpty(txtBetUser.Text) ||
+                string.IsNullOrEmpty(txtBetPass.Text))
             {
                 MessageBox.Show(this, "Empty Login credientials.");
                 return false;
@@ -135,9 +193,8 @@ namespace BettingBot
                 return;
 
             refreshControls(false);
-            writeStatus("The bot has been started!");
-            if (Setting.instance.enableAutoStaker) writeStatus("The Auto Staker Bot has been started!");
-            if (Setting.instance.enableAutoSlip) writeStatus("The Auto Slip Bot has been started!");
+            if (chkAutoStaker.Checked) writeStatus("The Auto Staker Bot has been started!");
+            if (chkAutoSlip.Checked) writeStatus("The Auto Slip Bot has been started!");
 
             BookieCtrl.CreateInstance();            
             BrowserCtrl.CloseOldBrowser();
@@ -171,70 +228,69 @@ namespace BettingBot
                 {
                     // start autostaker, autoslip bot
                     BookieCtrl.instance.updateSlipBalance();
-                    if (Setting.instance.enableAutoStaker) BookieCtrl.instance.startAutoStaker();
-                    if (Setting.instance.enableAutoSlip) BookieCtrl.instance.startAutoSlip();
+                    if (chkAutoStaker.Checked) BookieCtrl.instance.startAutoStaker();
+                    if (chkAutoSlip.Checked) BookieCtrl.instance.startAutoSlip();
 
-                    List<RaceItem> nextRaceList = BookieCtrl.instance.getNextRaces(Setting.instance.beforeKickoff);
                     List<HorseItem> horseList = new List<HorseItem>();
-                    foreach (RaceItem raceItem in nextRaceList)
-                    {
-                        List<HorseItem> horseListEX = BookieCtrl.instance.GetBfHorseList(raceItem.winMarketId);
-                        //toolStripStatusThread.Text = $" horseListEX: {horseListEX.Count}";
-                        if (horseListEX.Count == 0)
-                        {
-                            Thread.Sleep(200);
-                            continue;
-                        }
-                        if (string.IsNullOrEmpty(raceItem.b365DirectLink))
-                        {
-                            Thread.Sleep(200);
-                            continue;
-                        }
-                        List<HorseItem> horseListSB = BookieCtrl.instance.GetHorseList(raceItem.b365DirectLink);
-                        //toolStripStatusThread.Text = $" horseListEX: {horseListEX.Count}";
-                        //toolStripStatusThread.Text += $" horseListSB: {horseListSB.Count}";
-                        if (horseListSB.Count == 0)
-                        {
-                            Thread.Sleep(200);
-                            continue;
-                        }
+                    //foreach (RaceItem raceItem in nextRaceList)
+                    //{
+                    //    List<HorseItem> horseListEX = BookieCtrl.instance.GetBfHorseList(raceItem.winMarketId);
+                    //    //toolStripStatusThread.Text = $" horseListEX: {horseListEX.Count}";
+                    //    if (horseListEX.Count == 0)
+                    //    {
+                    //        Thread.Sleep(200);
+                    //        continue;
+                    //    }
+                    //    if (string.IsNullOrEmpty(raceItem.b365DirectLink))
+                    //    {
+                    //        Thread.Sleep(200);
+                    //        continue;
+                    //    }
+                    //    List<HorseItem> horseListSB = BookieCtrl.instance.GetHorseList(raceItem.b365DirectLink);
+                    //    //toolStripStatusThread.Text = $" horseListEX: {horseListEX.Count}";
+                    //    //toolStripStatusThread.Text += $" horseListSB: {horseListSB.Count}";
+                    //    if (horseListSB.Count == 0)
+                    //    {
+                    //        Thread.Sleep(200);
+                    //        continue;
+                    //    }
 
-                        for (int i = 0; i < horseListEX.Count; i++)
-                        {
-                            HorseItem horseEx = horseListEX[i];
-                            for (int j = 0; j < horseListSB.Count; j++)
-                            {
-                                HorseItem horseSb = horseListSB[j];
-                                horseSb.raceName = raceItem.raceTitle;
-                                horseSb.raceStart = raceItem.raceStart;
-                                horseSb.type = raceItem.type;
-                                horseSb.title = horseSb.title.Replace("'", "");
-                                double dist = JaroWinklerDistance.distance(horseEx.title.Trim(), horseSb.title.Trim());
-                                if (dist < 0.06)
-                                {
-                                    horseSb.title2 = horseEx.title;
-                                    horseSb.backOdds = horseEx.backOdds;
-                                    horseSb.layOdds = horseEx.layOdds;
-                                    horseList.Add(horseSb);
-                                    if(BookieCtrl.instance.startNewTrade(horseSb))
-                                    {
-                                        this.BeginInvoke((Action)(() =>
-                                        {
-                                            dataSourceBets.DataSource = BookieCtrl.instance.PlacedBetList;
-                                            dataSourceBets.ResetBindings(false);
-                                        }));
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    _horseList = new BindingList<HorseItem>(horseList);
-                    this.BeginInvoke((Action)(() =>
-                    {
-                        dataSourceEvents.DataSource = _horseList;
-                        dataSourceEvents.ResetBindings(false);
-                    }));
+                    //    for (int i = 0; i < horseListEX.Count; i++)
+                    //    {
+                    //        HorseItem horseEx = horseListEX[i];
+                    //        for (int j = 0; j < horseListSB.Count; j++)
+                    //        {
+                    //            HorseItem horseSb = horseListSB[j];
+                    //            horseSb.raceName = raceItem.raceTitle;
+                    //            horseSb.raceStart = raceItem.raceStart;
+                    //            horseSb.type = raceItem.type;
+                    //            horseSb.title = horseSb.title.Replace("'", "");
+                    //            double dist = JaroWinklerDistance.distance(horseEx.title.Trim(), horseSb.title.Trim());
+                    //            if (dist < 0.06)
+                    //            {
+                    //                horseSb.title2 = horseEx.title;
+                    //                horseSb.backOdds = horseEx.backOdds;
+                    //                horseSb.layOdds = horseEx.layOdds;
+                    //                horseList.Add(horseSb);
+                    //                if(BookieCtrl.instance.startNewTrade(horseSb))
+                    //                {
+                    //                    this.BeginInvoke((Action)(() =>
+                    //                    {
+                    //                        dataSourceBets.DataSource = BookieCtrl.instance.PlacedBetList;
+                    //                        dataSourceBets.ResetBindings(false);
+                    //                    }));
+                    //                }
+                    //                break;
+                    //            }
+                    //        }
+                    //    }
+                    //}
+                    //_horseList = new BindingList<HorseItem>(horseList);
+                    //this.BeginInvoke((Action)(() =>
+                    //{
+                    //    dataSourceEvents.DataSource = _horseList;
+                    //    dataSourceEvents.ResetBindings(false);
+                    //}));
 
                     
                 }
@@ -356,8 +412,8 @@ namespace BettingBot
 
         private void ExitProgram()
         {
+            saveSettingInfo();
             GlobalConstants.state = State.Stop;
-            Setting.instance.saveSettingInfo();
             try
             {
                 Application.Exit();
@@ -515,16 +571,6 @@ namespace BettingBot
 
                 writeStatus(Convert.ToBase64String(hashBytes));
             }
-        }
-
-        private void button1_Click_2(object sender, EventArgs e)
-        {
-
-        }
-
-        private void rtLog_TextChanged(object sender, EventArgs e)
-        {
-
         }
     }
 }

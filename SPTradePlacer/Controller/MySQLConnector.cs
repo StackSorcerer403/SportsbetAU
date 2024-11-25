@@ -38,33 +38,33 @@ namespace BettingBot.Controller
 
         private void doConnect()
         {
-            connection = new MySqlConnection(connectionString);
-            try
-            {
-                // Open the connection
-                connection.Open();
-                Console.WriteLine("Connection successful!");
+            //connection = new MySqlConnection(connectionString);
+            //try
+            //{
+            //    // Open the connection
+            //    connection.Open();
+            //    Console.WriteLine("Connection successful!");
 
-                // Create a SQL query
-                string query = $"SELECT COUNT(*) FROM tbl_account WHERE status=1 AND bookmaker='winamax' AND license='{Setting.instance.fingerPrint}';";
+            //    // Create a SQL query
+            //    string query = $"SELECT COUNT(*) FROM tbl_account WHERE status=1 AND bookmaker='winamax' AND license='{Setting.instance.fingerPrint}';";
 
-                // Create a command object
-                MySqlCommand command = new MySqlCommand(query, connection);
-                int rowCount = Convert.ToInt32(command.ExecuteScalar());
-                if(rowCount == 0 )
-                {
-                    LogMng.instance.PrintLog("It is new account. Please contact support!");
-                    query = $"INSERT INTO tbl_account(username, password, bookmaker, license) VALUES ('{Setting.instance.betUser}', '{Setting.instance.betPassword}', 'winamax', '{Utils.Base64Encode($"{Setting.instance.betUser}:{Setting.instance.betPassword}")}');";
-                    command = new MySqlCommand(query, connection);
-                    command.ExecuteNonQuery();
-                    return;
-                }
-                IsLogged = true;
-            }
-            catch (MySqlException ex)
-            {
-                Console.WriteLine("An error occurred: " + ex.Message);
-            }
+            //    // Create a command object
+            //    MySqlCommand command = new MySqlCommand(query, connection);
+            //    int rowCount = Convert.ToInt32(command.ExecuteScalar());
+            //    if(rowCount == 0 )
+            //    {
+            //        LogMng.instance.PrintLog("It is new account. Please contact support!");
+            //        query = $"INSERT INTO tbl_account(username, password, bookmaker, license) VALUES ('{Setting.instance.betUser}', '{Setting.instance.betPassword}', 'winamax', '{Utils.Base64Encode($"{Setting.instance.betUser}:{Setting.instance.betPassword}")}');";
+            //        command = new MySqlCommand(query, connection);
+            //        command.ExecuteNonQuery();
+            //        return;
+            //    }
+            //    IsLogged = true;
+            //}
+            //catch (MySqlException ex)
+            //{
+            //    Console.WriteLine("An error occurred: " + ex.Message);
+            //}
         }
 
     }
